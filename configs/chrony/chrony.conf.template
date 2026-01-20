@@ -1,14 +1,30 @@
 # Chrony configuration for Alpine Linux
 # NTP servers are added by bootstrap script above this line
+# using: server <hostname> iburst
 
 # Record the rate at which the system clock gains/losses time
 driftfile /var/lib/chrony/chrony.drift
 
 # Allow the system clock to be stepped in the first three updates
+# if the adjustment is larger than 1 second
 makestep 1.0 3
 
 # Enable kernel synchronisation of the real-time clock (RTC)
 rtcsync
 
-# Log files location
+# Improve initial synchronization
+# Use 4-8 measurements in first updates for better accuracy
+maxsamples 8
+
+# Set maximum allowed offset before refusing to sync (in seconds)
+# Prevents massive time jumps from rogue servers
+maxchange 1000 1 2
+
+# Save NTP measurements on exit to speed up next startup
+dumpdir /var/lib/chrony
+
+# Limit memory used for client access logging
+clientloglimit 16777216
+
+# Specify directory for log files
 logdir /var/log/chrony

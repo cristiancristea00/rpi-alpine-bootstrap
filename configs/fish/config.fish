@@ -1,5 +1,7 @@
+# Disable greeting message
 set -g fish_greeting
 
+# Show full path in prompt
 set -U fish_prompt_pwd_dir_length 0
 
 # Common eza options
@@ -8,30 +10,30 @@ set -g COMMON_OPTIONS_EZA --absolute=off --classify=never --long --colour=always
 # Common fd options
 set -g COMMON_OPTIONS_FD --hidden --color always --follow --prune
 
-# Colored man pages
+# Coloured man pages using bat
 set -x MANPAGER "sh -c 'col -bx | bat -l man -p'"
 set -x MANROFFOPT "-c"
 
 # Functions using eza
 function ll
-    eza $COMMON_OPTIONS_EZA $argv
+    command eza $COMMON_OPTIONS_EZA $argv
 end
 
 function la
-    eza $COMMON_OPTIONS_EZA --all $argv
+    command eza $COMMON_OPTIONS_EZA --all $argv
 end
 
 function lt
-    eza $COMMON_OPTIONS_EZA --tree --level=2 $argv
+    command eza $COMMON_OPTIONS_EZA --tree --level=2 $argv
 end
 
 function lta
-    eza $COMMON_OPTIONS_EZA --tree --level=2 --all $argv
+    command eza $COMMON_OPTIONS_EZA --tree --level=2 --all $argv
 end
 
 # Functions using fd
 function ff
-    fd $COMMON_OPTIONS_FD --type file $argv
+    command fd $COMMON_OPTIONS_FD --type file $argv
 end
 
 function fd
@@ -40,4 +42,17 @@ end
 
 function fx
     command fd $COMMON_OPTIONS_FD --type executable $argv
+end
+
+# Quick navigation aliases
+function ..
+    cd ..
+end
+
+function ...
+    cd ../..
+end
+
+function ....
+    cd ../../..
 end
