@@ -2,6 +2,20 @@
 # Docker Image Auto-Update Script
 # Runs daily to update all Docker compose services and prune unused images
 
+# ==============================================================================
+# SCRIPT DIRECTORY
+# ==============================================================================
+# Determine the directory where the script is located
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# ==============================================================================
+# SOURCE COMMON UTILITIES
+# ==============================================================================
+# Source common functions (includes root check)
+
+. "${SCRIPT_DIR}/common.sh"
+
 LOG_TAG="docker-update"
 COMPOSE_DIR="/opt/docker"
 
@@ -14,7 +28,7 @@ fi
 
 log() {
     logger -t "$LOG_TAG" "$1"
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')]: $1"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S %Z')]: $1"
 }
 
 log "Starting Docker image update..."
