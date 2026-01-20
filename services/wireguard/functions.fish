@@ -15,3 +15,15 @@ end
 function wireguard-logs
     docker logs --follow wireguard $argv
 end
+
+function wireguard-start
+    docker start wireguard
+end
+
+function wireguard-stop
+    docker stop wireguard
+end
+
+function wireguard-restart
+    docker restart wireguard
+end

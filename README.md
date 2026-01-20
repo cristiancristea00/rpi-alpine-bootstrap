@@ -80,13 +80,16 @@ The script will:
 
 ### WireGuard VPN
 
-A WireGuard VPN server using the linuxserver/wireguard image.
+A WireGuard VPN server.
 
 **Shell functions:**
 
-- `wireguard-show` - Display WireGuard status
+- `wireguard-show`        - Display WireGuard status
 - `wireguard-peer <name>` - Show peer QR code
-- `wireguard-logs` - Follow container logs
+- `wireguard-logs`        - Follow container logs
+- `wireguard-start`       - Start WireGuard
+- `wireguard-stop`        - Stop WireGuard
+- `wireguard-restart`     - Restart WireGuard
 
 ### Tor obfs4 Bridge
 
@@ -94,8 +97,11 @@ A Tor bridge with obfs4 pluggable transport to help users bypass censorship.
 
 **Shell functions:**
 
-- `tor-obfs4-bridge-line` - Get bridge connection string
-- `tor-obfs4-bridge-logs` - Follow container logs
+- `tor-obfs4-bridge-line`    - Get bridge connection string
+- `tor-obfs4-bridge-logs`    - Follow container logs
+- `tor-obfs4-bridge-start`   - Start bridge
+- `tor-obfs4-bridge-stop`    - Stop bridge
+- `tor-obfs4-bridge-restart` - Restart bridge
 
 ### Tor Snowflake Proxy
 
@@ -103,7 +109,10 @@ A Snowflake proxy to help Tor users connect through WebRTC.
 
 **Shell functions:**
 
-- `tor-snowflake-proxy-logs` - Follow container logs
+- `tor-snowflake-proxy-logs`    - Follow container logs
+- `tor-snowflake-proxy-start`   - Start Snowflake proxy
+- `tor-snowflake-proxy-stop`    - Stop Snowflake proxy
+- `tor-snowflake-proxy-restart` - Restart Snowflake proxy
 
 ## Hot Reload
 
@@ -111,7 +120,7 @@ Docker services are monitored for configuration changes. When you edit a service
 
 Watcher logs are available at:
 
-```
+```sh
 /var/log/compose-watch-<service-name>.log
 ```
 
