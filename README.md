@@ -1,6 +1,6 @@
 # Alpine Linux Bootstrap for Raspberry Pi
 
-A comprehensive bootstrap script for configuring Alpine Linux on Raspberry Pi 5 (also compatible with Pi 4).
+Personal bootstrap script for configuring Alpine Linux on Raspberry Pi 4/5.
 
 ## Features
 
