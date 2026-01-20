@@ -1,0 +1,29 @@
+services:
+    tor-obfs4-bridge:
+        image: thetorproject/obfs4-bridge:latest
+        container_name: ${SERVICE_NAME}
+        restart: unless-stopped
+
+        environment:
+            - PT_PORT=${PT_PORT}
+            - OR_PORT=${OR_PORT}
+            - EMAIL=${EMAIL}
+            - NICKNAME=${NICKNAME}
+            - OBFS4_ENABLE_ADDITIONAL_VARIABLES=${ENABLE_ADDITIONAL_VARIABLES}
+            - OBFS4V_PublishServerDescriptor=${PUBLISH_SERVER_DESCRIPTOR}
+            - OBFS4V_BridgeDistribution=${BRIDGE_DISTRIBUTION}
+
+        ports:
+            - ${OR_PORT}:${OR_PORT}/tcp
+            - ${OR_PORT}:${OR_PORT}/udp
+            - ${PT_PORT}:${PT_PORT}/tcp
+            - ${PT_PORT}:${PT_PORT}/udp
+
+        volumes:
+            - /srv/${SERVICE_NAME}/data:/data
+
+        networks:
+            - obfs4_bridge_external_network
+
+networks:
+    obfs4_bridge_external_network:

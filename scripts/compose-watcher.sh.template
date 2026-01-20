@@ -1,0 +1,45 @@
+#!/bin/sh
+# Compose file watcher for {{SERVICE_NAME}}
+# Watches compose.yml and .env for changes and reloads the container
+
+COMPOSE_FILE="{{COMPOSE_FILE}}"
+ENV_FILE="{{ENV_FILE}}"
+COMPOSE_CMD="{{COMPOSE_CMD}}"
+LOG_TAG="{{WATCHER_NAME}}"
+
+log() {
+    # Format: [2026-01-15 13:54:08 GMT+2]: <message>
+    timestamp=$(date '+%Y-%m-%d %H:%M:%S %Z')
+    logger -t "$LOG_TAG" "$1"
+    echo "[${timestamp}]: $1"
+}
+
+# Build list of files to watch (only existing files)
+WATCH_FILES="$COMPOSE_FILE"
+if [ -f "$ENV_FILE" ]; then
+    WATCH_FILES="$WATCH_FILES $ENV_FILE"
+fi
+
+log "Starting compose watcher for $WATCH_FILES"
+
+while true; do
+    # Wait for file modification (close_write catches save events)
+    # Watch both compose.yml and .env if it exists
+    inotifywait --quiet --event close_write,modify $WATCH_FILES 2>/dev/null
+    
+    # Debounce - wait a moment for editors that do multiple writes
+    sleep 1
+    
+    log "Configuration changed, restarting container..."
+    
+    # Full restart: down + up (needed for services like WireGuard to regenerate configs)
+    log "Stopping container..."
+    $COMPOSE_CMD --file "$COMPOSE_FILE" down 2>&1
+    
+    log "Starting container..."
+    if $COMPOSE_CMD --file "$COMPOSE_FILE" up --detach --force-recreate 2>&1; then
+        log "Container restarted successfully"
+    else
+        log "Failed to restart container"
+    fi
+done

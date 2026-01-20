@@ -1,0 +1,38 @@
+#!/sbin/openrc-run
+
+name="Compose Watcher for {{SERVICE_NAME}}"
+description="Watches compose.yml and .env, reloads {{SERVICE_NAME}} on changes"
+
+pidfile="/run/{{WATCHER_NAME}}.pid"
+logfile="/var/log/{{WATCHER_NAME}}.log"
+
+depend() {
+    need docker
+    after docker
+}
+
+start() {
+    ebegin "Starting ${name}"
+    touch "$logfile"
+    start-stop-daemon --start --background \
+        --make-pidfile --pidfile "$pidfile" \
+        --stdout "$logfile" --stderr "$logfile" \
+        --exec {{WATCHER_SCRIPT}}
+    eend $?
+}
+
+stop() {
+    ebegin "Stopping ${name}"
+    start-stop-daemon --stop --pidfile "$pidfile"
+    eend $?
+}
+
+status() {
+    if [ -f "$pidfile" ] && kill -0 $(cat "$pidfile") 2>/dev/null; then
+        einfo "${name} is running"
+        return 0
+    else
+        einfo "${name} is not running"
+        return 1
+    fi
+}

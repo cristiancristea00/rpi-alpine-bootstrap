@@ -1,0 +1,12 @@
+services:
+    tor-snowflake-proxy:
+        image: thetorproject/snowflake-proxy:latest
+        container_name: ${SERVICE_NAME}
+        restart: unless-stopped
+        network_mode: host
+
+        command:
+            - "-capacity"
+            - "5"
+            - "-ephemeral-ports-range"
+            - "30000:50000"

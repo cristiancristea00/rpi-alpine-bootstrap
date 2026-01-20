@@ -1,0 +1,33 @@
+services:
+    wireguard:
+        image: linuxserver/wireguard:latest
+        container_name: ${SERVICE_NAME}
+        restart: unless-stopped
+
+        environment:
+            - PUID=${PUID}
+            - PGID=${PGID}
+            - TZ=${TIMEZONE}
+            - SERVERURL=${SERVER_URL}
+            - SERVERPORT=${SERVER_PORT}
+            - PEERS=${PEERS}
+            - INTERNAL_SUBNET=${INTERNAL_SUBNET}
+            - ALLOWEDIPS=${ALLOWED_IPS}
+            - PEERDNS=${PEER_DNS}
+            - PERSISTENTKEEPALIVE_PEERS=${PERSISTENT_KEEP_ALIVE_PEERS}
+            - LOG_CONFS=${LOG_CONFIGS}
+
+        cap_add:
+            - NET_ADMIN
+            - SYS_MODULE
+
+        volumes:
+            - /srv/${SERVICE_NAME}/config:/config
+            - /lib/modules:/lib/modules
+
+        ports:
+            - ${SERVER_PORT}:51820/tcp
+            - ${SERVER_PORT}:51820/udp
+
+        sysctls:
+            - net.ipv4.conf.all.src_valid_mark=1

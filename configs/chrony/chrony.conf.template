@@ -1,0 +1,14 @@
+# Chrony configuration for Alpine Linux
+# NTP servers are added by bootstrap script above this line
+
+# Record the rate at which the system clock gains/losses time
+driftfile /var/lib/chrony/chrony.drift
+
+# Allow the system clock to be stepped in the first three updates
+makestep 1.0 3
+
+# Enable kernel synchronisation of the real-time clock (RTC)
+rtcsync
+
+# Log files location
+logdir /var/log/chrony

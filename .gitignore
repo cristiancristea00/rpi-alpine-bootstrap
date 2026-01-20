@@ -1,0 +1,9 @@
+# Environment files with secrets
+bootstrap.env
+services/*/.env
+
+# Generated files
+*.log
+
+# macOS
+.DS_Store
