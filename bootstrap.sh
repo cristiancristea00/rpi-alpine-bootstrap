@@ -607,8 +607,46 @@ if ! grep -q "^Include /etc/ssh/sshd_config.d/\*.conf" /etc/ssh/sshd_config 2>/d
     fi
 fi
 
-install_config "sshd/99-bootstrap-rpi${RPI_VERSION}.conf" "/etc/ssh/sshd_config.d/99-bootstrap.conf" 600
-success "SSH configured (port ${SSH_PORT}, password auth, pubkey auth, root login disabled)"
+# Generate SSH config dynamically based on configuration
+# Default to yes if not set (backward compatibility)
+SSH_PASSWORD_AUTH="${SSH_PASSWORD_AUTH:-yes}"
+
+# Validate SSH_PASSWORD_AUTH value
+if [ "$SSH_PASSWORD_AUTH" != "yes" ] && [ "$SSH_PASSWORD_AUTH" != "no" ]; then
+    warn "Invalid SSH_PASSWORD_AUTH value '${SSH_PASSWORD_AUTH}', defaulting to 'yes'"
+    SSH_PASSWORD_AUTH="yes"
+fi
+
+# Warn if disabling password auth without SSH key configured
+if [ "$SSH_PASSWORD_AUTH" = "no" ] && [ -z "$USER_SSH_KEY" ]; then
+    error "Cannot disable password authentication: USER_SSH_KEY is not configured. Configure your SSH key first!"
+fi
+
+# Generate SSH config file
+{
+    echo "# SSH configuration added by bootstrap script"
+    echo "# Uses sshd_config.d drop-in to avoid modifying main config"
+    echo "# Raspberry Pi ${RPI_VERSION} configuration"
+    echo ""
+    echo "Port ${SSH_PORT}"
+    if [ "$SSH_PASSWORD_AUTH" = "yes" ]; then
+        echo "PasswordAuthentication yes"
+    else
+        echo "PasswordAuthentication no"
+    fi
+    echo "PubkeyAuthentication yes"
+    echo "PermitRootLogin no"
+} > /etc/ssh/sshd_config.d/99-bootstrap.conf
+
+chmod 600 /etc/ssh/sshd_config.d/99-bootstrap.conf
+
+# Build success message
+if [ "$SSH_PASSWORD_AUTH" = "yes" ]; then
+    AUTH_METHODS="password auth, pubkey auth"
+else
+    AUTH_METHODS="pubkey auth only (password disabled)"
+fi
+success "SSH configured (port ${SSH_PORT}, ${AUTH_METHODS}, root login disabled)"
 
 # Enable and start SSH service
 info "Enabling SSH service..."
@@ -1250,8 +1288,13 @@ if [ -n "$ACTUAL_USER" ]; then
 fi
 printf "  ${GREEN}✓${NC} SSH server\n"
 printf "    - Port: %s\n" "$SSH_PORT"
-printf "    - Password authentication enabled\n"
-printf "    - Public key authentication enabled\n"
+if [ "$SSH_PASSWORD_AUTH" = "yes" ]; then
+    printf "    - Password authentication enabled\n"
+    printf "    - Public key authentication enabled\n"
+else
+    printf "    - Password authentication disabled\n"
+    printf "    - Public key authentication only\n"
+fi
 printf "    - Root login disabled\n"
 printf "    - SSH service enabled at boot\n"
 printf "\n"

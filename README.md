@@ -149,5 +149,5 @@ docker-update-images
 
 - `bootstrap.env` contains sensitive data and is automatically set to mode 600
 - Service `.env` files are set to mode 600 when deployed
-- SSH password authentication is disabled by default
+- SSH password authentication can be disabled via `SSH_PASSWORD_AUTH="no"` in `bootstrap.env` (requires SSH key to be configured)
 - All `.env` files are excluded from version control via `.gitignore`
