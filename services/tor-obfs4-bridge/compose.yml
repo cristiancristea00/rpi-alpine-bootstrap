@@ -5,13 +5,14 @@ services:
         restart: unless-stopped
 
         environment:
-            - PT_PORT=${PT_PORT}
             - OR_PORT=${OR_PORT}
+            - PT_PORT=${PT_PORT}
             - EMAIL=${EMAIL}
             - NICKNAME=${NICKNAME}
             - OBFS4_ENABLE_ADDITIONAL_VARIABLES=${ENABLE_ADDITIONAL_VARIABLES}
             - OBFS4V_PublishServerDescriptor=${PUBLISH_SERVER_DESCRIPTOR}
             - OBFS4V_BridgeDistribution=${BRIDGE_DISTRIBUTION}
+            - OBFS4V_ExitRelay=${EXIT_RELAY}
 
         ports:
             - ${OR_PORT}:${OR_PORT}/tcp
