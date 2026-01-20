@@ -7,6 +7,9 @@ ENV_FILE="{{ENV_FILE}}"
 COMPOSE_CMD="{{COMPOSE_CMD}}"
 LOG_TAG="{{WATCHER_NAME}}"
 
+# Docker Compose automatically uses .env file in the same directory as compose.yml
+# No need to specify --env-file explicitly
+
 log() {
     # Format: [2026-01-15 13:54:08 GMT+2]: <message>
     timestamp=$(date '+%Y-%m-%d %H:%M:%S %Z')

@@ -137,6 +137,95 @@ deploy_fish_functions() {
 }
 
 # ==============================================================================
+# IMAGE TAG SELECTION
+# ==============================================================================
+# Update an env file with a key/value pair (creates file if missing)
+#
+# Usage: set_env_value <env_file> <key> <value>
+#
+set_env_value() {
+    env_file="$1"
+    env_key="$2"
+    env_value="$3"
+
+    if [ -z "$env_file" ] || [ -z "$env_key" ]; then
+        error "set_env_value: env file and key required"
+        return 1
+    fi
+
+    env_dir=$(dirname "$env_file")
+    mkdir -p "$env_dir"
+
+    tmp_file=$(mktemp)
+    if [ -f "$env_file" ]; then
+        # Escape special regex characters in the key for safe pattern matching
+        escaped_key=$(printf "%s" "$env_key" | sed 's/[.[\*^$()+?{|]/\\&/g')
+        awk -v k="$env_key" -v v="$env_value" -v ek="$escaped_key" '
+            BEGIN {updated = 0}
+            $0 ~ "^" ek "=" {
+                if (!updated) {
+                    print k "=" v
+                    updated = 1
+                }
+                next
+            }
+            {print}
+            END {
+                if (!updated) {
+                    print k "=" v
+                }
+            }
+        ' "$env_file" > "$tmp_file"
+    else
+        printf "%s=%s\n" "$env_key" "$env_value" > "$tmp_file"
+    fi
+
+    mv "$tmp_file" "$env_file"
+    chmod 600 "$env_file"
+}
+
+# Prompt the user for latest vs nightly and persist to .env
+#
+# Usage: select_image_tag <service_name>
+#
+select_image_tag() {
+    svc_name="$1"
+    env_file="${DOCKER_COMPOSE_DIR}/${svc_name}/.env"
+
+    if [ -z "$svc_name" ]; then
+        warn "select_image_tag: service name required"
+        return 1
+    fi
+
+    while :; do
+        printf "Choose image tag for %s (latest/nightly) [latest]: " "$svc_name"
+        read tag_choice
+        tag_choice=$(printf "%s" "$tag_choice" | tr '[:upper:]' '[:lower:]')
+        if [ -z "$tag_choice" ]; then
+            tag_choice="latest"
+        fi
+
+        case "$tag_choice" in
+            l|la|lat|late|lates|latest)
+                tag_choice="latest"
+                break
+                ;;
+            n|ni|nig|nigh|night|nightl|nightly)
+                tag_choice="nightly"
+                break
+                ;;
+            *)
+                warn "Please answer with latest or nightly (l/n)"
+                ;;
+        esac
+    done
+
+    set_env_value "$env_file" "IMAGE_TAG" "$tag_choice"
+
+    success "Using ${tag_choice} image tag for ${svc_name}"
+}
+
+# ==============================================================================
 # START SERVICE
 # ==============================================================================
 # Pulls images and starts the service using Docker Compose
@@ -156,6 +245,9 @@ start_service() {
         error "start_service: compose file not found at ${svc_compose}"
         return 1
     fi
+    
+    # Docker Compose automatically uses .env file in the same directory as compose.yml
+    # No need to specify --env-file explicitly
     
     info "Pulling images for ${svc_name}..."
     $DOCKER_COMPOSE --file "$svc_compose" pull
@@ -186,6 +278,9 @@ stop_service() {
         warn "stop_service: compose file not found, skipping"
         return 0
     fi
+    
+    # Docker Compose automatically uses .env file in the same directory as compose.yml
+    # No need to specify --env-file explicitly
     
     info "Stopping ${svc_name}..."
     $DOCKER_COMPOSE --file "$svc_compose" down

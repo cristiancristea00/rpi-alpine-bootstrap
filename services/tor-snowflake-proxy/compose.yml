@@ -1,6 +1,6 @@
 services:
     tor-snowflake-proxy:
-        image: thetorproject/snowflake-proxy:latest
+        image: "thetorproject/snowflake-proxy:${IMAGE_TAG:-latest}"
         container_name: ${SERVICE_NAME}
         restart: unless-stopped
         network_mode: host

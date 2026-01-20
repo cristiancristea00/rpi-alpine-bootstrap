@@ -1261,6 +1261,9 @@ for pkg in ${PACKAGES}; do
     printf "    - %s\n" "$pkg"
 done
 printf "\n"
+printf "  ${GREEN}✓${NC} Package repositories\n"
+printf "    - Community repository enabled/added to /etc/apk/repositories\n"
+printf "\n"
 printf "  ${GREEN}✓${NC} User privilege configuration\n"
 if [ -n "$ACTUAL_USER" ]; then
     printf "    - User '%s' added to wheel group\n" "$ACTUAL_USER"
@@ -1318,6 +1321,7 @@ if [ -n "$WIFI_INTERFACE" ]; then
     printf "    - WiFi regulatory domain: %s\n" "${WIFI_COUNTRY}"
 fi
 printf "    - wpa_supplicant backend for WiFi\n"
+printf "    - wpa_supplicant configured (P2P disabled)\n"
 printf "    - DNS managed by NetworkManager (persistent)\n"
 printf "    - Search domains:"
 for domain in ${DNS_SEARCH_DOMAINS}; do

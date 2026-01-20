@@ -1,6 +1,6 @@
 services:
     tor-obfs4-bridge:
-        image: thetorproject/obfs4-bridge:latest
+        image: "thetorproject/obfs4-bridge:${IMAGE_TAG:-latest}"
         container_name: ${SERVICE_NAME}
         restart: unless-stopped
 

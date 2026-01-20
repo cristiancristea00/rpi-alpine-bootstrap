@@ -1,6 +1,6 @@
 services:
     wireguard:
-        image: linuxserver/wireguard:latest
+        image: "linuxserver/wireguard:${IMAGE_TAG:-latest}"
         container_name: ${SERVICE_NAME}
         restart: unless-stopped
 

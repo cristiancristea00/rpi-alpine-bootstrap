@@ -3,18 +3,27 @@
 # Runs daily to update all Docker compose services and prune unused images
 
 # ==============================================================================
-# SCRIPT DIRECTORY
+# ROOT CHECK
 # ==============================================================================
-# Determine the directory where the script is located
+# Ensure the script runs as root, re-execute with elevated privileges if needed
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-
-# ==============================================================================
-# SOURCE COMMON UTILITIES
-# ==============================================================================
-# Source common functions (includes root check)
-
-. "${SCRIPT_DIR}/common.sh"
+if [ "$(id -u)" -ne 0 ]; then
+    echo "This script must be run as root."
+    
+    # Try doas first (preferred on Alpine)
+    if command -v doas >/dev/null 2>&1; then
+        echo "Re-executing with doas..."
+        exec doas "$0" "$@"
+    # Try sudo next
+    elif command -v sudo >/dev/null 2>&1; then
+        echo "Re-executing with sudo..."
+        exec sudo "$0" "$@"
+    # Fall back to su (requires root password)
+    else
+        echo "Re-executing with su..."
+        exec su -c "'$0' $*"
+    fi
+fi
 
 LOG_TAG="docker-update"
 COMPOSE_DIR="/opt/docker"
