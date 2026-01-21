@@ -455,6 +455,17 @@ else
 fi
 
 # ==============================================================================
+# BOOT CONFIGURATION
+# ==============================================================================
+
+section "Installing Boot Configuration"
+
+info "Installing Raspberry Pi boot configuration (usercfg.txt)..."
+install_config "boot/usercfg.txt" "/boot/usercfg.txt" 644
+success "Boot configuration installed to /boot/usercfg.txt"
+warn "Boot configuration changes require a reboot to take effect"
+
+# ==============================================================================
 # USER PRIVILEGE CONFIGURATION
 # ==============================================================================
 
@@ -1379,6 +1390,10 @@ printf "    - Root login disabled\n"
 printf "    - SSH service enabled at boot\n"
 printf "\n"
 printf "  ${GREEN}✓${NC} MOTD configured (Raspberry Pi %s)\n" "$RPI_VERSION"
+printf "\n"
+printf "  ${GREEN}✓${NC} Boot configuration\n"
+printf "    - usercfg.txt installed to /boot/usercfg.txt\n"
+printf "    - PCIe and cooling settings configured for Pi %s\n" "$RPI_VERSION"
 printf "\n"
 printf "  ${GREEN}✓${NC} Security\n"
 printf "    - Root account password locked\n"

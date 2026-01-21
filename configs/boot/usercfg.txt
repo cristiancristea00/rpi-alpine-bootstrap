@@ -1,0 +1,116 @@
+# ==============================================================================
+# Raspberry Pi Boot Configuration (usercfg.txt)
+# ==============================================================================
+#
+# This file contains boot-time configuration for Raspberry Pi devices.
+# Settings are applied during boot and control hardware behavior, performance,
+# and peripheral initialization. Configuration is organized by device model
+# using conditional filters ([pi5], [pi4], [all]).
+#
+# Note: Changes require a reboot to take effect.
+#
+
+# ==============================================================================
+# Raspberry Pi 5 Configuration (NVMe Boot + Active Cooling)
+# ==============================================================================
+#
+# Optimized for Pi 5 with NVMe storage and official Active Cooler.
+# These settings enable PCIe connectivity and tune the active cooling fan.
+#
+[pi5]
+
+# CPU frequency override (2500 MHz)
+# Overclocks the ARM cores for improved performance
+arm_freq=2500
+
+# Enable PCIe x1 interface (required for NVMe drives and HAT+ devices)
+# Without this, PCIe storage and expansion boards will not function
+dtparam=pciex1
+
+# Enable PCIe Gen 3 speeds (optional, may be unstable on some hardware)
+# Gen 3 provides up to 8 GT/s per lane vs Gen 2's 5 GT/s
+# Comment out if experiencing stability issues with NVMe or HATs
+dtparam=pciex1_gen=3
+
+# Active Cooler Fan Control Configuration
+# The official Active Cooler uses a 4-point temperature curve to control
+# fan speed. Each point defines a temperature threshold (in millidegrees C),
+# hysteresis (temperature drop before stepping down), and PWM speed (0-255).
+#
+# Default values are shown below. Uncomment to customize fan behavior:
+# - Lower thresholds for quieter operation (may reduce cooling performance)
+# - Higher speeds for more aggressive cooling (increases noise)
+
+# Fan stage 0: Light cooling at 45°C (PWM: 64/255 = 25%)
+dtparam=fan_temp0=45000
+dtparam=fan_temp0_hyst=5000
+dtparam=fan_temp0_speed=64
+
+# Fan stage 1: Moderate cooling at 55°C (PWM: 128/255 = 50%)
+dtparam=fan_temp1=55000
+dtparam=fan_temp1_hyst=5000
+dtparam=fan_temp1_speed=128
+
+# Fan stage 2: High cooling at 65°C (PWM: 191/255 = 75%)
+dtparam=fan_temp2=65000
+dtparam=fan_temp2_hyst=5000
+dtparam=fan_temp2_speed=191
+
+# Fan stage 3: Maximum cooling at 75°C (PWM: 255/255 = 100%)
+dtparam=fan_temp3=75000
+dtparam=fan_temp3_hyst=5000
+dtparam=fan_temp3_speed=255
+
+
+# ==============================================================================
+# Raspberry Pi 4 Configuration (USB Boot + Passive Cooling)
+# ==============================================================================
+#
+# Optimized for Pi 4 with USB storage and passive heatsink.
+# Moderate overclock settings for improved performance without active cooling.
+#
+[pi4]
+
+# Enable firmware-based CPU frequency boost
+# Allows dynamic frequency scaling up to the arm_freq limit
+arm_boost=1
+
+# CPU frequency override (1800 MHz)
+# Moderate overclock from stock 1500 MHz for better performance
+# Safe with passive cooling under normal ambient temperatures
+arm_freq=1800
+
+# ==============================================================================
+# Common Configuration (All Models)
+# ==============================================================================
+#
+# Settings applied to all Raspberry Pi models for headless server operation.
+# Disables unnecessary peripherals to reduce power consumption and boot time.
+#
+[all]
+
+# Disable camera detection and overlays
+# Skips probing for CSI camera modules during boot
+# Reduces boot time when no camera is connected
+camera_auto_detect=0
+
+# Disable display detection and overlays
+# Skips probing for DSI displays during boot
+# Reduces boot time when no display is connected
+display_auto_detect=0
+
+# Disable HDMI output
+# Saves ~25mA power consumption per HDMI port
+# Recommended for headless servers without displays
+dtparam=hdmi=off
+
+# Disable audio subsystem
+# Disables the onboard audio codec and HDMI audio
+# Saves power and frees resources for headless operation
+dtparam=audio=off
+
+# Disable Bluetooth radio (preserves WiFi functionality)
+# Frees UART0 (GPIO 14/15) on Pi 4 and earlier models
+# Bluetooth shares the UART with the serial console on older models
+# Comment out if Bluetooth connectivity is required
+dtoverlay=disable-bt
