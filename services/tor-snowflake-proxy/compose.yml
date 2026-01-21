@@ -5,6 +5,9 @@ services:
         restart: unless-stopped
         network_mode: host
 
+        environment:
+            - TZ=${TIMEZONE}
+
         command:
             - "-capacity"
             - "5"

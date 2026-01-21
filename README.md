@@ -85,11 +85,13 @@ A WireGuard VPN server.
 **Shell functions:**
 
 - `wireguard-show`        - Display WireGuard status
-- `wireguard-peer <name>` - Show peer QR code
 - `wireguard-logs`        - Follow container logs
 - `wireguard-start`       - Start WireGuard
 - `wireguard-stop`        - Stop WireGuard
 - `wireguard-restart`     - Restart WireGuard
+- `wireguard-down`        - Bring down WireGuard
+- `wireguard-up`          - Bring up WireGuard
+- `wireguard-recreate`    - Recreate WireGuard container
 
 ### Tor obfs4 Bridge
 
@@ -102,6 +104,9 @@ A Tor bridge with obfs4 pluggable transport to help users bypass censorship.
 - `tor-obfs4-bridge-start`   - Start bridge
 - `tor-obfs4-bridge-stop`    - Stop bridge
 - `tor-obfs4-bridge-restart` - Restart bridge
+- `tor-obfs4-bridge-down`    - Bring down bridge
+- `tor-obfs4-bridge-up`      - Bring up bridge
+- `tor-obfs4-bridge-recreate`- Recreate bridge container
 
 ### Tor Snowflake Proxy
 
@@ -113,6 +118,9 @@ A Snowflake proxy to help Tor users connect through WebRTC.
 - `tor-snowflake-proxy-start`   - Start Snowflake proxy
 - `tor-snowflake-proxy-stop`    - Stop Snowflake proxy
 - `tor-snowflake-proxy-restart` - Restart Snowflake proxy
+- `tor-snowflake-proxy-down`    - Bring down Snowflake proxy
+- `tor-snowflake-proxy-up`      - Bring up Snowflake proxy
+- `tor-snowflake-proxy-recreate`- Recreate Snowflake proxy container
 
 ## Hot Reload
 

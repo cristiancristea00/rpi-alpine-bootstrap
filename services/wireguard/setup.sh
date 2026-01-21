@@ -12,32 +12,6 @@ SERVICE_NAME="wireguard"
 . "${SCRIPT_DIR}/services/common.sh"
 
 # ==============================================================================
-# NETWORK CONFIGURATION
-# ==============================================================================
-
-info "Configuring IP forwarding for WireGuard..."
-
-# Enable IPv4 and IPv6 forwarding (persistent)
-{
-    echo "# IP forwarding for WireGuard VPN"
-    echo "net.ipv4.ip_forward=1"
-    echo "net.ipv6.conf.all.forwarding=1"
-    echo ""
-    echo "# Accept Router Advertisements even with forwarding enabled"
-    if [ -n "$ETH_INTERFACE" ]; then
-        echo "net.ipv6.conf.${ETH_INTERFACE}.accept_ra=2"
-    fi
-    if [ -n "$WIFI_INTERFACE" ]; then
-        echo "net.ipv6.conf.${WIFI_INTERFACE}.accept_ra=2"
-    fi
-} > /etc/sysctl.d/99-wireguard.conf
-
-# Apply immediately
-sysctl -p /etc/sysctl.d/99-wireguard.conf >/dev/null 2>&1 || true
-
-success "IP forwarding enabled"
-
-# ==============================================================================
 # WIREGUARD SETUP
 # ==============================================================================
 
@@ -48,6 +22,9 @@ setup_service_dirs "$SERVICE_NAME"
 
 # Deploy compose file
 deploy_compose "$SERVICE_NAME"
+
+# Select image tag (latest or edge)
+select_image_tag "$SERVICE_NAME" "latest" "edge" "15"
 
 # Deploy fish shell functions
 deploy_fish_functions "$SERVICE_NAME"

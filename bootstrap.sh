@@ -257,13 +257,13 @@ if [ -d "${SCRIPT_DIR}/services" ]; then
     if [ "$INSTALL_DOCKER_PACKAGES" = "ask" ]; then
         printf "\n"
         info "Docker services are available for installation."
-        printf "${BLUE}[?]${NC} Do you want to set up Docker services? [y/N] "
+        printf "${BLUE}[?]${NC} Do you want to set up Docker services? [Y/n] "
         read -r docker_answer
-        if [ "$docker_answer" = "y" ] || [ "$docker_answer" = "Y" ]; then
+        if [ "$docker_answer" = "n" ] || [ "$docker_answer" = "N" ]; then
+            info "Skipping Docker packages."
+        else
             INSTALL_DOCKER_PACKAGES="yes"
             info "Docker packages will be installed."
-        else
-            info "Skipping Docker packages."
         fi
         printf "\n"
     fi
@@ -514,6 +514,11 @@ if [ -n "$ACTUAL_USER" ]; then
     success "Shell set to fish for user '$ACTUAL_USER'"
     info "The user will use fish shell on next login."
     
+    # Set root shell to fish as well
+    info "Setting shell to fish for root user..."
+    chsh -s "$FISH_PATH" root
+    success "Shell set to fish for root user"
+    
     # Configure SSH key (with idempotency check)
     info "Configuring SSH key for user '$ACTUAL_USER'..."
     USER_HOME=$(getent passwd "$ACTUAL_USER" | cut -d: -f6)
@@ -552,6 +557,18 @@ if [ -n "$ACTUAL_USER" ]; then
     install_user_config "fish/config.fish" ".config/fish/config.fish"
     success "Fish config installed"
     
+    # Deploy common Docker service functions if Docker services are used
+    if [ "$INSTALL_DOCKER_PACKAGES" = "yes" ] && [ -f "${SCRIPT_DIR}/services/common.fish" ]; then
+        info "Installing common Docker service functions..."
+        user_home=$(getent passwd "$ACTUAL_USER" | cut -d: -f6)
+        fish_confdir="${user_home}/.config/fish/conf.d"
+        mkdir -p "$fish_confdir"
+        cp "${SCRIPT_DIR}/services/common.fish" "${fish_confdir}/00-docker-services-common.fish"
+        chmod 644 "${fish_confdir}/00-docker-services-common.fish"
+        chown "${ACTUAL_USER}:${ACTUAL_USER}" "${fish_confdir}/00-docker-services-common.fish"
+        success "Common Docker service functions installed (loads first)"
+    fi
+    
     # Bat config
     info "Installing bat configuration..."
     install_user_config "bat/config" ".config/bat/config"
@@ -578,6 +595,7 @@ if [ -n "$ACTUAL_USER" ]; then
     ln -sf "${user_home}/.config/nvim" /root/.config/nvim
     
     success "Root user configs linked to ${ACTUAL_USER}'s configs"
+    info "Root and sudo users will have access to all fish functions including Docker service functions"
 else
     warn "Skipping user configs - no target user configured"
 fi
@@ -840,6 +858,33 @@ if [ -n "$WIFI_INTERFACE" ]; then
 else
     warn "No WiFi interface detected"
 fi
+
+# ==============================================================================
+# SYSCTL CONFIGURATION
+# ==============================================================================
+
+section "Configuring System Network Parameters"
+
+info "Installing sysctl configuration..."
+install_config "sysctl/99-config.conf" "/etc/sysctl.d/99-config.conf" 644
+success "Base sysctl configuration installed"
+
+# Append interface-specific accept_ra settings
+info "Configuring Router Advertisement acceptance for interfaces..."
+{
+    echo ""
+    echo "# Accept Router Advertisements even with forwarding enabled"
+    if [ -n "$ETH_INTERFACE" ]; then
+        echo "net.ipv6.conf.${ETH_INTERFACE}.accept_ra=2"
+    fi
+    if [ -n "$WIFI_INTERFACE" ]; then
+        echo "net.ipv6.conf.${WIFI_INTERFACE}.accept_ra=2"
+    fi
+} >> /etc/sysctl.d/99-config.conf
+
+# Apply sysctl configuration
+sysctl -p /etc/sysctl.d/99-config.conf >/dev/null 2>&1 || true
+success "System network parameters configured and applied"
 
 # ==============================================================================
 # ETHERNET CONFIGURATION (NetworkManager)
@@ -1184,10 +1229,12 @@ if [ "$INSTALL_DOCKER_PACKAGES" = "yes" ] && [ -d "$SERVICES_DIR" ]; then
         if [ -d "$service_dir" ] && [ -f "${service_dir}/setup.sh" ]; then
             service_name=$(basename "$service_dir")
             
-            printf "${BLUE}[?]${NC} Set up ${BOLD}%s${NC}? [y/N] " "$service_name"
+            printf "${BLUE}[?]${NC} Set up ${BOLD}%s${NC}? [Y/n] " "$service_name"
             read -r answer
             
-            if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
+            if [ "$answer" = "n" ] || [ "$answer" = "N" ]; then
+                info "Skipping ${service_name}"
+            else
                 # Source the service setup script
                 . "${service_dir}/setup.sh"
                 
@@ -1197,8 +1244,6 @@ if [ "$INSTALL_DOCKER_PACKAGES" = "yes" ] && [ -d "$SERVICES_DIR" ]; then
                 else
                     INSTALLED_SERVICES="${INSTALLED_SERVICES} ${service_name}"
                 fi
-            else
-                info "Skipping ${service_name}"
             fi
         fi
     done
@@ -1240,6 +1285,38 @@ CRON_EOF
     info "  Log:    /var/log/docker-update.log"
     info ""
     info "To run manually: docker-update-images"
+fi
+
+# ==============================================================================
+# DOCKER CLEANUP
+# ==============================================================================
+
+if [ -n "$INSTALLED_SERVICES" ]; then
+    section "Docker Cleanup"
+    
+    info "Cleaning up unused Docker resources..."
+    
+    # Remove stopped containers
+    info "Removing stopped containers..."
+    docker container prune --force 2>/dev/null || true
+    success "Stopped containers removed"
+    
+    # Remove unused images
+    info "Removing unused images..."
+    docker image prune --all --force 2>/dev/null || true
+    success "Unused images removed"
+    
+    # Remove unused volumes
+    info "Removing unused volumes..."
+    docker volume prune --force 2>/dev/null || true
+    success "Unused volumes removed"
+    
+    # Remove unused networks
+    info "Removing unused networks..."
+    docker network prune --force 2>/dev/null || true
+    success "Unused networks removed"
+    
+    success "Docker cleanup complete"
 fi
 
 # ==============================================================================

@@ -1,33 +1,28 @@
 services:
     wireguard:
-        image: "linuxserver/wireguard:${IMAGE_TAG:-latest}"
+        image: "ghcr.io/wg-easy/wg-easy:${IMAGE_TAG:-latest}"
         container_name: ${SERVICE_NAME}
         restart: unless-stopped
+        network_mode: host
 
         environment:
-            - PUID=${PUID}
-            - PGID=${PGID}
             - TZ=${TIMEZONE}
-            - SERVERURL=${SERVER_URL}
-            - SERVERPORT=${SERVER_PORT}
-            - PEERS=${PEERS}
-            - INTERNAL_SUBNET=${INTERNAL_SUBNET}
-            - ALLOWEDIPS=${ALLOWED_IPS}
-            - PEERDNS=${PEER_DNS}
-            - PERSISTENTKEEPALIVE_PEERS=${PERSISTENT_KEEP_ALIVE_PEERS}
-            - LOG_CONFS=${LOG_CONFIGS}
+            - INSECURE=${NO_PROXY}
+            - HOST=${UI_HOST}
+            - PORT=${UI_PORT}
+            - INIT_ENABLED=${UNATTENDED}
+            - INIT_USERNAME=${USERNAME}
+            - INIT_PASSWORD=${PASSWORD}
+            - INIT_HOST=${HOST}
+            - INIT_PORT=${PORT}
+            - INIT_DNS=${DNS}
+            - INIT_IPV4_CIDR=${SUBNET_IPV4}
+            - INIT_IPV6_CIDR=${SUBNET_IPV6}
 
         cap_add:
             - NET_ADMIN
             - SYS_MODULE
 
         volumes:
-            - /srv/${SERVICE_NAME}/config:/config
-            - /lib/modules:/lib/modules
-
-        ports:
-            - ${SERVER_PORT}:51820/tcp
-            - ${SERVER_PORT}:51820/udp
-
-        sysctls:
-            - net.ipv4.conf.all.src_valid_mark=1
+            - /srv/${SERVICE_NAME}/:/etc/wireguard
+            - /lib/modules:/lib/modules:ro

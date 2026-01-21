@@ -24,7 +24,7 @@ setup_service_dirs "$SERVICE_NAME"
 deploy_compose "$SERVICE_NAME"
 
 # Ask user for image tag (latest or nightly) and persist selection
-select_image_tag "$SERVICE_NAME"
+select_image_tag "$SERVICE_NAME" "latest" "nightly"
 
 # Deploy fish shell functions
 deploy_fish_functions "$SERVICE_NAME"

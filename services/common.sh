@@ -186,10 +186,12 @@ set_env_value() {
 
 # Prompt the user for latest vs nightly and persist to .env
 #
-# Usage: select_image_tag <service_name>
+# Usage: select_image_tag <service_name> <option1> [option2] [...]
+# First option is the default
 #
 select_image_tag() {
     svc_name="$1"
+    shift
     env_file="${DOCKER_COMPOSE_DIR}/${svc_name}/.env"
 
     if [ -z "$svc_name" ]; then
@@ -197,27 +199,48 @@ select_image_tag() {
         return 1
     fi
 
+    if [ $# -eq 0 ]; then
+        warn "select_image_tag: at least one tag option required"
+        return 1
+    fi
+
+    # Store available options
+    options="$*"
+    default_option="$1"
+
+    # Build prompt message
+    prompt_options=$(echo "$options" | sed 's/ /\//g')
+    
     while :; do
-        printf "Choose image tag for %s (latest/nightly) [latest]: " "$svc_name"
+        printf "Choose image tag for %s (%s) [%s]: " "$svc_name" "$prompt_options" "$default_option"
         read tag_choice
         tag_choice=$(printf "%s" "$tag_choice" | tr '[:upper:]' '[:lower:]')
+        
+        # Use default if empty
         if [ -z "$tag_choice" ]; then
-            tag_choice="latest"
+            tag_choice="$default_option"
+            break
         fi
 
-        case "$tag_choice" in
-            l|la|lat|late|lates|latest)
-                tag_choice="latest"
-                break
-                ;;
-            n|ni|nig|nigh|night|nightl|nightly)
-                tag_choice="nightly"
-                break
-                ;;
-            *)
-                warn "Please answer with latest or nightly (l/n)"
-                ;;
-        esac
+        # Check if input matches any option (with prefix matching)
+        matched=0
+        for opt in $options; do
+            opt_lower=$(printf "%s" "$opt" | tr '[:upper:]' '[:lower:]')
+            # Check if tag_choice is a prefix of opt_lower
+            case "$opt_lower" in
+                "$tag_choice"*)
+                    tag_choice="$opt"
+                    matched=1
+                    break
+                    ;;
+            esac
+        done
+
+        if [ $matched -eq 1 ]; then
+            break
+        else
+            warn "Please choose one of: $options"
+        fi
     done
 
     set_env_value "$env_file" "IMAGE_TAG" "$tag_choice"

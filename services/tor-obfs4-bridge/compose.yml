@@ -3,8 +3,10 @@ services:
         image: "thetorproject/obfs4-bridge:${IMAGE_TAG:-latest}"
         container_name: ${SERVICE_NAME}
         restart: unless-stopped
+        network_mode: host
 
         environment:
+            - TZ=${TIMEZONE}
             - OR_PORT=${OR_PORT}
             - PT_PORT=${PT_PORT}
             - EMAIL=${EMAIL}
@@ -14,17 +16,5 @@ services:
             - OBFS4V_BridgeDistribution=${BRIDGE_DISTRIBUTION}
             - OBFS4V_ExitRelay=${EXIT_RELAY}
 
-        ports:
-            - ${OR_PORT}:${OR_PORT}/tcp
-            - ${OR_PORT}:${OR_PORT}/udp
-            - ${PT_PORT}:${PT_PORT}/tcp
-            - ${PT_PORT}:${PT_PORT}/udp
-
         volumes:
             - /srv/${SERVICE_NAME}/data:/data
-
-        networks:
-            - obfs4_bridge_external_network
-
-networks:
-    obfs4_bridge_external_network:
