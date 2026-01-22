@@ -878,24 +878,10 @@ section "Configuring System Network Parameters"
 
 info "Installing sysctl configuration..."
 install_config "sysctl/99-config.conf" "/etc/sysctl.d/99-config.conf" 644
-success "Base sysctl configuration installed"
-
-# Append interface-specific accept_ra settings
-info "Configuring Router Advertisement acceptance for interfaces..."
-{
-    echo ""
-    echo "# Accept Router Advertisements even with forwarding enabled"
-    if [ -n "$ETH_INTERFACE" ]; then
-        echo "net.ipv6.conf.${ETH_INTERFACE}.accept_ra=2"
-    fi
-    if [ -n "$WIFI_INTERFACE" ]; then
-        echo "net.ipv6.conf.${WIFI_INTERFACE}.accept_ra=2"
-    fi
-} >> /etc/sysctl.d/99-config.conf
 
 # Apply sysctl configuration
 sysctl -p /etc/sysctl.d/99-config.conf >/dev/null 2>&1 || true
-success "System network parameters configured and applied"
+success "Sysctl configuration installed and applied"
 
 # ==============================================================================
 # ETHERNET CONFIGURATION (NetworkManager)
